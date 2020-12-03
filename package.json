@@ -1,0 +1,49 @@
+{
+  "name": "JMBank",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "start": "npm run serve"
+  },
+  "dependencies": {
+    "@babel/compat-data": "^7.11.0",
+    "@jiaminghi/data-view": "^2.9.9",
+    "amfe-flexible": "^2.2.1",
+    "axios": "^0.20.0",
+    "core-js": "^3.6.5",
+    "dat.gui": "^0.7.7",
+    "echarts": "^4.9.0",
+    "element-ui": "^2.13.2",
+    "forge-apis": "^0.7.3",
+    "three": "^0.120.1",
+    "three-obj-mtl-loader": "^1.0.3",
+    "tween": "^0.9.0",
+    "vue": "^2.6.11",
+    "vue-awesome": "^4.1.0",
+    "vue-ls": "^3.2.1",
+    "vue-router": "^3.4.3",
+    "vuetify": "^2.3.10",
+    "vuetify-loader": "^1.6.0",
+    "vuex": "^3.5.1"
+  },
+  "devDependencies": {
+    "@mdi/font": "^5.5.55",
+    "@vue/cli-plugin-babel": "~4.5.0",
+    "@vue/cli-service": "~4.5.0",
+    "deepmerge": "^4.2.2",
+    "fibers": "^5.0.0",
+    "less": "^3.12.2",
+    "less-loader": "^7.0.1",
+    "node-sass": "^4.14.1",
+    "sass": "^1.26.10",
+    "sass-loader": "^10.0.2",
+    "vue-template-compiler": "^2.6.11"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
