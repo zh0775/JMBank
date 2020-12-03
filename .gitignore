@@ -16,3 +16,4 @@ package-lock.json
 *.sln
 *dist
 *dist.zip
+node_modules
