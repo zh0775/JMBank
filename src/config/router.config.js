@@ -23,4 +23,11 @@ export const constantRouterMap = [
     meta: {title: '跟进进度'},
     children:[]
   },
+  {
+    path: '/followProgressDetail',
+    name: 'followProgressDetail',
+    component: () => import('@/views/pages/followProgressDetail'),
+    meta: {title: '跟进进度详情'},
+    children:[]
+  },
 ]

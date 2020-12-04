@@ -4,7 +4,9 @@ import '@/core/lazy_user'
 import './permission';
 import store from '@/store/';
 import router from '@/router';
-
+import ViewUI from 'view-design';
+import 'view-design/dist/styles/iview.css';
+Vue.use(ViewUI);
 // // 按需引入vue-awesome图标
 // import Icon from 'vue-awesome/components/Icon';
 // import 'vue-awesome/icons/chart-bar.js';

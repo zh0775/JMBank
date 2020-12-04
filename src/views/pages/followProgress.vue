@@ -7,6 +7,7 @@
           node-key="id"
           default-expand-all
           :expand-on-click-node="false"
+          @node-click="treeNodeClick"
           :render-content="renderContent">
         </el-tree>
       </div>
@@ -24,20 +25,45 @@
         <span :class="{normal_span:!topLeftSelected , select_span:topLeftSelected}">{{'服务点' + '(' + serviceData.length + ')'}}</span>
         <img :class="{normal:!topLeftSelected , select:topLeftSelected}" src="~@/assets/icon/icon_arrow_down.png" alt="">
       </div>
-      <div v-if="!topLeftSelected" class="time_select top_select" @click="topTimeClick">
-        <span :class="{normal_span:!topRightSelected , select_span:topRightSelected}">{{selectTime}}</span>
-        <img :class="{normal:!topRightSelected , select:topRightSelected}" src="~@/assets/icon/icon_arrow_down.png" alt="">
-      </div>
-      <div v-if="topLeftSelected" class="select_time" @click="selectStartEndtime">
+       <DatePicker
+          class="time_select top_select"
+          v-if="!topLeftSelected"
+          :open="topRightSelected"
+          :value="selectTime"
+          type="date"
+          @on-change="topTimeValueChange">
+          <a href="javascript:void(0)" @click="topTimeClick">
+              <!-- <Icon type="ios-calendar-outline"></Icon>
+              <template v-if="value3 === ''">Select date</template>
+              <template v-else>{{ value3 }}</template> -->
+              <span :class="{normal_span:!topRightSelected , select_span:topRightSelected}">{{selectTime}}</span>
+               <img :class="{normal:!topRightSelected , select:topRightSelected}" src="~@/assets/icon/icon_arrow_down.png" alt="">
+          </a>
+      </DatePicker>
+
+      <DatePicker
+        v-if="topLeftSelected"
+        class="select_time"
+        :open="startEndTimeSelected"
+        type="daterange"
+        transfer-class-name="select_time_transfer"
+        @on-change="topDateRangeValueChange">
+        <a href="javascript:void(0)" @click="selectStartEndtime" style="display: flex;
+      flex-direction: row;align-items: center; height: 50px;">
+          <span :class="{normal_span:!startEndTimeSelected , select_span:startEndTimeSelected}" class="select_time_span">{{startTime ? (startTime + '-' + endTime) : '请选择时间'}}</span>
+          <img :class="{normal:!startEndTimeSelected , select:startEndTimeSelected}" src="~@/assets/icon/icon_arrow_down.png" alt="">
+        </a>
+      </DatePicker>
+      <!-- <div v-if="topLeftSelected" class="select_time" @click="selectStartEndtime">
         <span :class="{normal_span:!startEndTimeSelected , select_span:startEndTimeSelected}" class="select_time_span">{{startTime + '-' + endTime}}</span>
         <img :class="{normal:!startEndTimeSelected , select:startEndTimeSelected}" src="~@/assets/icon/icon_arrow_down.png" alt="">
-      </div>
+      </div> -->
       <span v-if="topLeftSelected" class="tj_count">{{'统计数量' + '(' + statisticalCount +')'}}</span>
     </div>
     <div class="list_title">
       <span>服务点</span><span>客户跟进进度</span><span>未跟进/总人数</span>
     </div>
-    <div v-for="(item, index) in followData" :key="index" class="follow_cell">
+    <div v-for="(item, index) in followData" :key="index" class="follow_cell" @click="toFollowDetail(index, item)">
       <span>{{item.title}}</span>
       <div class="progress_content">
         <p>{{(Number(item.umFollowCount) / Number(item.allFollowCount) * 100).toFixed(0) + '%'}}</p>
@@ -95,8 +121,8 @@ export default {
       { title: '台北中心服务点', umFollowCount: '12', allFollowCount: '20' },
       { title: '这是一个名称较长的服务点', umFollowCount: '6', allFollowCount: '20' },],
       selectTime: '2020-11-09',
-      startTime:'2020-10-01',
-      endTime:'2020-11-19',
+      startTime:'',
+      endTime:'',
       statisticalCount:4,
       serviceData: [],
       startEndTimeSelected: false,
@@ -105,10 +131,17 @@ export default {
     }
   },
   mounted () {
+    window.setData = this.setData
     setDocumentTitle('跟进进度');
     this.getPx();
   },
   methods: {
+    setData(e){
+      if (e) {
+        this.followData = e;
+      }
+      return '跟进进度';
+    },
     topServiceClick(e){
       this.topLeftSelected = !this.topLeftSelected;
       if (this.topLeftSelected) {
@@ -116,6 +149,17 @@ export default {
       } else {
         this.startEndTimeSelected = false;
       }
+    },
+    topTimeValueChange (e) {
+      this.selectTime = e;
+      this.topRightSelected = !this.topRightSelected;
+    },
+    topDateRangeValueChange (e) {
+      if (e && e.length > 1) {
+        this.startTime = e[0];
+        this.endTime = e[1];
+      }
+      this.startEndTimeSelected = !this.startEndTimeSelected;
     },
     topTimeClick(e){
       this.topRightSelected = !this.topRightSelected;
@@ -135,13 +179,23 @@ export default {
       console.log(arguments);
     },
     renderContent(h, { node, data, store }) {
+      // console.log('node.checked  =', node.checked);
+      // node.checked = true;
       return (
         <span class="custom-tree-node">
           <span>{node.label}</span>
           <span>
-            <el-checkbox on-change={ () => this.selectNode(node, data) }></el-checkbox>
+            <el-checkbox value={node.checked} on-change={ () => this.selectNode(node, data) }></el-checkbox>
           </span>
         </span>);
+    },
+    toFollowDetail (index, item) {
+      this.$router.push({name: 'followProgressDetail', params: item});
+      // console.log('object === ', arguments);
+    },
+    treeNodeClick(data, node, com) {
+      node.checked = !node.checked;
+      console.log(`treeNodeClick === `, arguments);
     }
   },
 }
@@ -155,6 +209,22 @@ export default {
   font-size: px2rem(30);
   width: 100%;
   height: 100%;
+}
+.ivu-date-picker-with-range .ivu-picker-panel-body {
+  min-width: px2rem(750);
+  
+}
+// .ivu-picker-panel-body, .ivu-picker-panel-body-date {
+//   width: px2rem(750);
+// }
+// .ivu-date-picker-cells {
+//   width: px2rem(750);
+// }
+.ivu-picker-panel-content{
+  width: px2rem(750);
+}
+.el-tree-node__expand-icon{
+  font-size: px2rem(40);
 }
 </style>
 
@@ -188,7 +258,7 @@ export default {
       display: flex;
       flex-direction: row;
       // align-items: center;
-      justify-content: start;
+      justify-content: flex-start;
       div {
         margin-left: px2rem(50);        
         line-height: px2rem(100);
@@ -234,35 +304,38 @@ export default {
   }
   .top_bar {
     width: 100%;
-    height: 40px;
+    height: 50px;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     .tj_count {
       color: $jm_text_black;
-      font-size: px2rem(15);
+      font-size: px2rem(25);
       margin-right: px2rem(50);
-      line-height: 40px;
+      line-height: 50px;
       // background-color: orangered;
     }
     .select_time {
+      font-size: px2rem(25);
       // background-color: red;
       position: relative;
-      // left: px2rem(6);
+      right: px2rem(20);
       width: px2rem(400);
       height: 100%;
-      
+      z-index: 1000;
       align-items: center;
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
+      
       .select_time_span {
-            overflow: hidden;
-     text-overflow: ellipsis;
-     display: -webkit-box;
-     -webkit-box-orient: vertical;
-     -webkit-line-clamp:1; // 行数
-        font-size: px2rem(12);
-      // color: white;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp:1; // 行数
+        font-size: px2rem(25);
+        // color: white;
+        // background-color: blue;
       }
       img {
         // background-color: yellow;
@@ -280,7 +353,7 @@ export default {
       align-items: center;
       display: flex;
       flex-direction: row;
-      font-size: px2rem(15);
+      font-size: px2rem(23);
       img {
         width: px2rem(40);
         height: px2rem(40);
@@ -292,18 +365,26 @@ export default {
       }
     }
     .time_select {
+      display: flex;
+      align-items: center;
+      // background-color: red;
       justify-content: flex-end;
       img {
+        position: relative;
+        top:px2rem(12);
         margin-right: px2rem(40);
+      }
+      span {
+        line-height: 30px;
       }
     }
   }
   .list_title {
     width: px2rem(750);
-    height: 30px;
-    line-height: 30px;
+    height: 40px;
+    line-height: 40px;
     display: flex;
-    font-size: px2rem(14);
+    font-size: px2rem(25);
     justify-content: space-between;
     color: $jm_text_gray;
     border-top: 0.5px $jm_line_color solid;
@@ -329,7 +410,7 @@ export default {
     // justify-content: space-between;
     color: $jm_text_black;
     line-height: px2rem(40);
-    font-size: px2rem(20);
+    font-size: px2rem(25);
     span {
       &:nth-child(1) {
         display: inline-block;
@@ -351,7 +432,7 @@ export default {
       position: relative;
       // right: px2rem(50);
       left: px2rem(20);
-      height: px2rem(90);
+      height: px2rem(110);
       width: px2rem(250);
       // background-color:red;
       p {
