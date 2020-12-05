@@ -3,6 +3,7 @@
     <div v-show="topLeftSelected" class="show_select_container">
       <div class="tree_view">
         <el-tree
+          ref="tree"
           :data="data"
           node-key="id"
           default-expand-all
@@ -13,16 +14,16 @@
       </div>
       <div class="buttons">
         <div @click="topServiceClick">取消</div>
-        <el-button type="primary" class="clean_button">
+        <el-button type="primary" class="clean_button" @click="resetTreeChecked">
           <img src="~@/assets/icon/icon_clean.png" alt="">
           <span>清空</span>
         </el-button>
-        <el-button type="primary" class="confirm_button">确认</el-button>
+        <el-button type="primary" class="confirm_button" @click="confirmClick">确认</el-button>
       </div>
     </div>
     <div class="top_bar">
       <div class="service_select top_select" @click="topServiceClick">
-        <span :class="{normal_span:!topLeftSelected , select_span:topLeftSelected}">{{'服务点' + '(' + serviceData.length + ')'}}</span>
+        <span :class="{normal_span:!topLeftSelected , select_span:topLeftSelected}">{{'服务点' + '(' + serviceCount + ')'}}</span>
         <img :class="{normal:!topLeftSelected , select:topLeftSelected}" src="~@/assets/icon/icon_arrow_down.png" alt="">
       </div>
        <DatePicker
@@ -64,85 +65,68 @@
       <span>服务点</span><span>客户跟进进度</span><span>未跟进/总人数</span>
     </div>
     <div v-for="(item, index) in followData" :key="index" class="follow_cell" @click="toFollowDetail(index, item)">
-      <span>{{item.title}}</span>
+      <span>{{item.organizationName}}</span>
       <div class="progress_content">
-        <p>{{(Number(item.umFollowCount) / Number(item.allFollowCount) * 100).toFixed(0) + '%'}}</p>
+        <p>{{(Number(item.falseCount) / Number(item.count) * 100).toFixed(0) + '%'}}</p>
         <div class="progress progress_all"></div>
-        <div class="progress progress_umfollow" :style="{width:getPx((Number(item.umFollowCount) / Number(item.allFollowCount)).toFixed(2))}"></div>
+        <div class="progress progress_umfollow" :style="{width:getPx((Number(item.falseCount) / Number(item.count)).toFixed(2))}"></div>
       </div>
-      <span>{{item.umFollowCount + '/' + item.allFollowCount}}</span>
+      <span>{{item.falseCount + '/' + item.count}}</span>
     </div>
+    <div class="empty" v-if="!followData.length || !followData">暂无记录</div>
   </div>
 </template>
 
 <script>
+import Vue from 'vue';
+import { USER_TOKEN } from '@/store/mutation-types';
 import { setDocumentTitle } from '@/utils/domUtil'
+import { getFollowByDep, getUnFollowPeople, getDep } from '@/api/follow'
 export default {
   data() {
-    const data = [{
-        id: 1,
-        label: '一级 1',
-        children: [{
-          id: 4,
-          label: '二级 1-1',
-          children: [{
-            id: 9,
-            label: '三级 1-1-1'
-          }, {
-            id: 10,
-            label: '三级 1-1-2'
-          }]
-        }]
-      }, {
-        id: 2,
-        label: '一级 2',
-        children: [{
-          id: 5,
-          label: '二级 2-1'
-        }, {
-          id: 6,
-          label: '二级 2-2'
-        }]
-      }, {
-        id: 3,
-        label: '一级 3',
-        children: [{
-          id: 7,
-          label: '二级 3-1'
-        }, {
-          id: 8,
-          label: '二级 3-2'
-        }]
-      }];
     return {
-      data: JSON.parse(JSON.stringify(data)),
-      followData:[{ title: '清秀万达服务点', umFollowCount: '16', allFollowCount: '20' },
-      { title: '台北中心服务点', umFollowCount: '12', allFollowCount: '20' },
-      { title: '台北中心服务点', umFollowCount: '12', allFollowCount: '20' },
-      { title: '这是一个名称较长的服务点', umFollowCount: '6', allFollowCount: '20' },],
+      data: [],
+      // followData:[{ title: '清秀万达服务点', umFollowCount: '16', allFollowCount: '20' },
+      // { title: '台北中心服务点', umFollowCount: '12', allFollowCount: '20' },
+      // { title: '台北中心服务点', umFollowCount: '12', allFollowCount: '20' },
+      // { organizationName: '这是一个名称较长的服务点', falseCount: '6', count: '20' },],
+      followData:[],
       selectTime: '2020-11-09',
       startTime:'',
       endTime:'',
       statisticalCount:4,
-      serviceData: [],
+      serviceCount: 0,
+      serviceSelected: [],
       startEndTimeSelected: false,
       topLeftSelected: false,
       topRightSelected: false,
+      depts: []
     }
   },
+  created () {
+    title.postMessage('跟进进度');
+    jump.postMessage('follow');
+    var yesterday = new Date();
+    yesterday.setTime(yesterday.getTime());
+    yesterday.setTime(yesterday.getTime()-24*60*60*1000);
+    var yesterdayStr = yesterday.getFullYear()+"-" + ((yesterday.getMonth()+1) > 9 ? (yesterday.getMonth()+1) : ('0' + (yesterday.getMonth()+1))) + "-" + (yesterday.getDate() > 9 ? yesterday.getDate() : ('0' + yesterday.getDate()));
+    this.selectTime = yesterdayStr;
+    this.getDep();
+  },
   mounted () {
-    window.setData = this.setData
+    window.setParams = this.setParams;
     setDocumentTitle('跟进进度');
-    this.getPx();
+    // currentTitle.postMessage('跟进进度');
   },
   methods: {
-    setData(e){
-      if (e) {
-        this.followData = e;
+    setParams(token, deptId){
+      if (token && deptId) {
+        Vue.ss.set(USER_TOKEN, token);
+        this.getFollowByDep(this.selectTime, deptId);
       }
-      return '跟进进度';
     },
     topServiceClick(e){
+      this.$refs.tree.setCheckedKeys([]);
       this.topLeftSelected = !this.topLeftSelected;
       if (this.topLeftSelected) {
         this.topRightSelected = false;
@@ -152,6 +136,7 @@ export default {
     },
     topTimeValueChange (e) {
       this.selectTime = e;
+      this.getFollowByDep(this.selectTime, this.depts);
       this.topRightSelected = !this.topRightSelected;
     },
     topDateRangeValueChange (e) {
@@ -175,27 +160,67 @@ export default {
     },
     
     selectNode (node, data) {
-      node.checked = !node.checked;
-      console.log(arguments);
+      // node.checked = !node.checked; 
     },
     renderContent(h, { node, data, store }) {
-      // console.log('node.checked  =', node.checked);
-      // node.checked = true;
       return (
         <span class="custom-tree-node">
           <span>{node.label}</span>
           <span>
-            <el-checkbox value={node.checked} on-change={ () => this.selectNode(node, data) }></el-checkbox>
+            <el-checkbox value={node.checked} on-change={ () => { this.selectNode(node, data);} }></el-checkbox>
           </span>
         </span>);
     },
     toFollowDetail (index, item) {
-      this.$router.push({name: 'followProgressDetail', params: item});
+      this.$router.push({name: 'followProgressDetail', params: {ids: this.depts, date: this.selectTime}});
       // console.log('object === ', arguments);
     },
     treeNodeClick(data, node, com) {
       node.checked = !node.checked;
-      console.log(`treeNodeClick === `, arguments);
+      // console.log('this.$refs.tree.getCheckedNodes([]); === ', this.$refs.tree.getCheckedNodes());
+      // console.log(`treeNodeClick === `, arguments);
+    },
+    async getFollowByDep (date, deptIds) {
+      this.depts = deptIds;
+      const params = {date: date,ids: deptIds};
+      const { data } = await getFollowByDep (params);      
+      if (data.code === 200) {
+        console.log('getFollowByDep === ', data);  
+        this.followData = data.data;
+        if(!this.followData.length) {
+        this.followData = [{ organizationName: '这是一个名称较长的服务点', falseCount: '6', count: '20' }];
+        }
+      }
+      
+    },
+    async getDep () {
+      const { data } = await getDep ();
+      console.log('res === ', data.data);
+      if (data.code === 200) {
+        this.data = data.data;
+        this.serviceCount = 0;
+        this.getServiceCount(data.data);
+      }
+    },
+    getServiceCount(array) {
+      array.forEach((data) => {
+        this.serviceCount++;
+        if(data.children && data.children.length > 0) {
+          this.getServiceCount(data.children);
+        }
+      });
+    },
+    resetTreeChecked() {
+      this.$refs.tree.setCheckedKeys([202],true);
+    },
+    confirmClick () {
+      const list =  this.$refs.tree.getCheckedNodes();
+      const depts = [];
+      list.forEach((value) => {
+        depts.push(value.id);
+      });
+      this.getFollowByDep(this.selectTime, depts);
+      this.topLeftSelected = false;
     }
   },
 }
@@ -224,12 +249,20 @@ export default {
   width: px2rem(750);
 }
 .el-tree-node__expand-icon{
-  font-size: px2rem(40);
+  font-size: px2rem(30);
 }
 </style>
 
 <style lang="scss" scoped>
 @import '@/assets/css/common.scss';
+.empty {
+  widows: px2rem(750);
+  height: px2rem(750);
+  line-height: px2rem(750);
+  text-align: center;
+  font-size: px2rem(40);
+  color: $jm_text_gray;
+}
 #followProgress{
   width: px2rem(750);
   height: 100%;
@@ -251,6 +284,8 @@ export default {
       padding-top: px2rem(30);
       // background-color: red;
       width: px2rem(650);
+      height: 80vh;
+      overflow: auto;
       margin-left: px2rem(50);
     }
     .buttons {

@@ -1,0 +1,1 @@
+export const USER_TOKEN = 'JM_USER_TOKEN';

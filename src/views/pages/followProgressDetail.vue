@@ -5,42 +5,62 @@
     </div>
     <div class="cell" v-for="(item, index) in cellData" :key="index">
       <div class="cell_left">
-        <img src="" alt="">
+        <!-- <img src="" alt=""> -->
         <div class="cell_left_name">
-          <span>{{item.name}}</span>
-          <span>{{serviceLocation}}</span>
+          <span>{{item.userName}}</span>
+          <span>{{item.organizationName}}</span>
         </div>
       </div>
       <div class="cell_right">
         <span>跟进完成进度</span>
-        <span>{{item.currentFollow + '/' + item.allFollow}}</span>
+        <span>{{item.visit + '/' + item.expect}}</span>
       </div>
     </div>
+    <div v-if="!cellData.length || !cellData" class="empty">暂无记录</div>
   </div>
 </template>
 
 <script>
+import { getUnFollowPeople } from '@/api/follow'
 import { setDocumentTitle } from '@/utils/domUtil';
 export default {
   data() {
     return {
       date: '2020-11-19',
-      cellData: [{icon:'',name:'姜维',currentFollow:'3',allFollow:'5'},
-      {icon:'',name:'姜维',currentFollow:'3',allFollow:'5'},
-      {icon:'',name:'姜维',currentFollow:'3',allFollow:'5'},
-      {icon:'',name:'姜维',currentFollow:'3',allFollow:'5'},
-      {icon:'',name:'姜维',currentFollow:'3',allFollow:'5'}],
-      serviceLocation: ''
+      cellData: [],
+      // cellData: [{icon:'',name:'姜维',currentFollow:'3',allFollow:'5'},
+      // {icon:'',name:'姜维',currentFollow:'3',allFollow:'5'},
+      // {icon:'',name:'姜维',currentFollow:'3',allFollow:'5'},
+      // {icon:'',name:'姜维',currentFollow:'3',allFollow:'5'},
+      // {icon:'',name:'姜维',currentFollow:'3',allFollow:'5'}],
+      // serviceLocation: ''
     }
   },
   created() {
-    this.serviceLocation = this.$route.params.title;
+    title.postMessage('跟进进度详情');
+    jump.postMessage('followDetail');
+    // this.serviceLocation = this.$route.params.title;
+    this.date = this.$route.params.date;
     console.log('this.$route.params === ',this.$route.params);
+    this.getUnFollowPeople(this.$route.params.ids);
   },
   mounted() {
     setDocumentTitle('跟进进度详情');
     // console.log('this.serviceLocation == ', this.serviceLocation);
   },
+  methods: {
+    async getUnFollowPeople (ids) {
+      const { data } = await getUnFollowPeople({ids,date: this.date});
+      // console.log('data === ' ,data);
+      if (data.code === 200) {
+        console.log('getUnFollowPeople === ', data);
+        // this.cellData = data.data;
+        // console.log('cellData ===', this.cellData);
+        // console.log('cellData ===', this.cellData.length);
+      }
+     }
+
+  }
 }
 </script>
 
@@ -49,7 +69,15 @@ export default {
 #followProgressDetail{
   width: px2rem(750);
   height: 100%;
-  background-color: white;
+  background-color:#fff;
+  .empty {
+    width: px2rem(750);
+    height: px2rem(750);
+    line-height: px2rem(750);
+    text-align: center;
+    font-size: px2rem(40);
+    color: $jm_text_gray;
+  }
   .title {
     width: px2rem(750);
     height: px2rem(80);

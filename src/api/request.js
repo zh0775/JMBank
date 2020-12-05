@@ -2,19 +2,21 @@ import axios from 'axios';
 import Vue from 'vue';
 import store from '@/store';
 // import Message from 'ant-design-vue/es/message';
-import { VueAxios } from './axios';
+// import { VueAxios } from './axios';
 import { USER_TOKEN } from '@/store/mutation-types';
 const isLocal = process.env.NODE_ENV === 'local';
 let baseURL = '';
-if (isLocal) {
-  baseURL = 'http://192.168.1.85:8085/api';// 黄星
-} else {
-  baseURL = process.env.VUE_APP_API_BASE_URL;
-}
-baseURL = 'http://192.168.1.70:8085/api';// 黄星
-const needLoadingApi = ['/board/findboardbyboardmap'];
+// if (isLocal) {
+  // baseURL = '/test-api';
+  baseURL = '/dev-api';
+  
+// } else {
+  // baseURL = process.env.VUE_APP_API_BASE_URL;
+// }
+// baseURL = 'http://192.168.1.70:8085/api';
+// const needLoadingApi = ['/board/findboardbyboardmap'];
 
-const noNeedTipApi = ['/login'];
+// const noNeedTipApi = ['/login'];
 let requestNum = 0; // 网络请求个数
 let loadingTimeout = null; // 网络请求loading延迟隐藏时间
 // 创建 axios 实例
@@ -90,38 +92,38 @@ const service = axios.create({
 
 service.interceptors.request.use((config) => {
   if (!config.data || (config.data && !config.data.isAutoRequest)) {
-    const mytoken = Vue.ss.get(USER_TOKEN);
-    if (mytoken) {
-      const sessionTimeOut = mytoken.sessionTimeOut;
-      Vue.ss.set(USER_TOKEN, mytoken, Number.parseFloat(sessionTimeOut) * 1000 * 60);
-      config.headers['Authorization'] = Vue.ss.get(USER_TOKEN);
+    const token = Vue.ss.get(USER_TOKEN);
+    if (token) {
+      // const sessionTimeOut = mytoken.sessionTimeOut;
+      // Vue.ss.set(USER_TOKEN, mytoken);
+      config.headers['Authorization'] = token;
     }
   }
-  if (needLoadingApi.includes(config.url)) {
-    requestNum++;
-    Vue.loading.show({
-      tip: '加载中......'
-    });
-  }
+  // if (needLoadingApi.includes(config.url)) {
+  //   requestNum++;
+  //   Vue.loading.show({
+  //     tip: '加载中......'
+  //   });
+  // }
   return config;
-}, err);
+});
 
-service.interceptors.response.use((response) => {
-  if (needLoadingApi.includes(response.config.url) && requestNum > 0) {
-    requestNum--;
-    hideLoading();
-  }
-  return response.data;
-}, err);
+// service.interceptors.response.use((response) => {
+//   if (needLoadingApi.includes(response.config.url) && requestNum > 0) {
+//     requestNum--;
+//     hideLoading();
+//   }
+//   return response.data;
+// }, err);
 
-const installer = {
-  vm: {},
-  install (Vue) {
-    Vue.use(VueAxios, service);
-  }
-};
+// const installer = {
+//   vm: {},
+//   install (Vue) {
+//     Vue.use(VueAxios, service);
+//   }
+// };
 
 export {
-  installer as VueAxios,
+  // installer as VueAxios,
   service as axios
 };

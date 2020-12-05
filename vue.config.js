@@ -3,13 +3,21 @@ module.exports = {
   runtimeCompiler : true,
   devServer: {
     proxy: {
-      "/api": {
-        target: "https://developer.api.autodesk.com",
+      "/test-api": {
+        target: "http://local.gxidt.cn",
         ws: true,
         changeOrigin: true,
-        pathRewrite: {
-          "^/api": ""
-        }
+        // pathRewrite: {
+        //   "^/test-api": ""
+        // }
+      },
+      "/dev-api": {
+        target: "http://local.gxidt.cn",
+        ws: true,
+        changeOrigin: true,
+        // pathRewrite: {
+        //   "^/test-api": ""
+        // }
       }
     }
   },

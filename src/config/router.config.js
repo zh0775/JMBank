@@ -4,7 +4,7 @@ export const constantRouterMap = [
   {
     path: '/',
     name: 'main',
-    redirect: '/followProgress',
+    redirect: '/followTrack',
     component: () => import('@/views/home/home'),
     meta: {title: '首页'},
     children:[]
@@ -28,6 +28,20 @@ export const constantRouterMap = [
     name: 'followProgressDetail',
     component: () => import('@/views/pages/followProgressDetail'),
     meta: {title: '跟进进度详情'},
+    children:[]
+  },
+  {
+    path: '/guideTrack',
+    name: 'guideTrack',
+    component: () => import('@/views/pages/guideTrack'),
+    meta: {title: '带看轨迹'},
+    children:[]
+  },
+  {
+    path: '/followTrack',
+    name: 'followTrack',
+    component: () => import('@/views/pages/followTrack'),
+    meta: {title: '跟进轨迹'},
     children:[]
   },
 ]
